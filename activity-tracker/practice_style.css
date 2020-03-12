@@ -2,3 +2,19 @@
     max-height: 250px;
     overflow: scroll;
 }
+
+.sketching {
+  color: red;
+  text-decoration: underline;
+  text-decoration-style: dashed;
+}
+.drawing {
+    color: orange;
+    text-decoration: underline;
+    text-decoration-style: wavy;
+}
+.painting {
+  color: purple;
+  text-decoration: underline;
+  text-decoration-style: double;
+}

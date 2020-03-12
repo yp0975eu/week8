@@ -47,7 +47,10 @@
               <!-- TODO create one option for each type  -->
               <option v-for="type in types" v-bind:value="type">{{type}}</option>
             </select>
-            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="note">Note</label>
+            <input id="note" class="form-control" type="text" v-model="note">
           </div>
 
           <div class="form-check-inline">
@@ -61,6 +64,12 @@
             <!-- TODO v-model, v-bind value -->
             <input id="v1" class="form-check-input" type="radio" v-bind:value="digital" v-model="digitalTraditional">
             <label class="form-check-label" for="v1">{{digital}}</label>
+          </div>
+
+          <div class="form-check-inline">
+            <!-- TODO v-model, v-bind value -->
+            <input id="completed" class="form-check-input" type="checkbox" v-model="completed">
+            <label class="form-check-label" for="completed">completed</label>
           </div>
 
           <div>
@@ -86,13 +95,17 @@
               <th>How long?</th>
               <th>Type</th>
               <th>Digital or traditional?</th>
+              <th>Note</th>
+              <th>Completed</th>
             </tr>
             <!-- TODO display one table row for each activityRecord  -->
-            <tr v-for="record in activityRecords">
+            <tr v-for="record in activityRecords" v-bind:class="record.type">
               <td>{{record.when | shortDateFormat}}</td>
               <td>{{record.howLong}}</td>
               <td>{{record.type}}</td>
               <td>{{record.digitalTraditional}}</td>
+              <td>{{record.note | shortNote}}</td>
+              <td>{{record.completed | completedMessage}}</td>
             </tr>
           </table>
         </div>
@@ -105,12 +118,12 @@
 
       <div class="card-body">
         <!-- TODO use computed property to display total hours -->
-        <p>You have practiced a total of {{totalHours}} hours, broken down as follows:</p>
+        <p>You have practiced a total of {{totalHours | precision(2)}} hours, broken down as follows:</p>
 
         <!-- TODO computed property to display total for each type  -->
         <p>Total for each type</p>
         <ul class="list-group list-group-flush">
-          <li class="list-group-item" v-for="hours, type in totalHoursByType">{{type}}: {{hours}}</li>
+          <li class="list-group-item" v-for="hours, type in totalHoursByType">{{type}}: {{hours | precision(2)}}</li>
         </ul>
       </div>
     </div>
@@ -136,7 +149,9 @@
         activityRecords: [],
         digital: "digital",
         traditional: "traditional",
-        errors: []
+        errors: [],
+        completed: false,
+        note: ''
       },
       computed: {
         whenLocal: function () {
@@ -149,11 +164,9 @@
           return this.activityRecords.length
         },
         totalHours: function () {
-          if (this.activityRecords.length > 0) {
-            return this.activityRecords.reduce((acc, record) => {
-              return acc + record.howLong
-            }, 0)
-          }
+          return this.activityRecords.reduce((acc, record) => {
+            return acc + record.howLong
+          }, 0)
         },
         totalHoursByType: function () {
           let hoursByType = {}
@@ -172,7 +185,16 @@
         },
         shortDateFormat: function (date) {
           return new Intl.DateTimeFormat().format(date)
-        }
+        },
+        completedMessage: function (completed) {
+          return completed ? 'completed' : 'in progress'
+        },
+        shortNote: function (note) {
+          return note.slice(0, 40)
+        },
+        precision: function (number, fractionDigits) {
+          return number.toFixed(fractionDigits)
+        },
       },
       methods: {
         submit: function () {
@@ -183,12 +205,18 @@
           if (typeof (this.howLong) != "number" || this.howLong <= 0) {
             this.errors.push("The number of hours must be a number greater than zero")
           }
+          if (this.type === '') {
+            this.errors.push("You must select a type")
+          }
+
           if (this.errors.length === 0) {
             let newRecord = {
               when: this.whenLocal,
               howLong: this.howLong,
               type: this.type,
-              digitalTraditional: this.digitalTraditional
+              digitalTraditional: this.digitalTraditional,
+              note: this.note,
+              completed: this.completed
             }
             this.activityRecords.push(newRecord)
             this.activityRecords.sort((r1, r2) => {
